@@ -1,0 +1,33 @@
+# Generated outputs
+results/
+
+# Restricted AURORA inputs and individual-level derivatives
+data/aurora/aurora_protein_altering_mutations.tsv
+data/aurora/matrix_union.csv
+data/aurora/panel_burden_aurora.csv
+data/aurora/*.csv
+!data/aurora/final_panel_genes.csv
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# R local state
+.Rhistory
+.RData
+.Rproj.user/
+renv/library/
+renv/staging/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tmp
+*.log

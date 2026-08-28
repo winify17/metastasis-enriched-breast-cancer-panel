@@ -1,0 +1,16 @@
+study: AURORA Breast Cancer Programme
+source_accession_or_release: REQUIRED
+source_export_date: REQUIRED
+source_file_name: REQUIRED
+source_sha256: REQUIRED
+data_custodian: REQUIRED
+access_approval_reference: REQUIRED
+public_disclosure_approval: REQUIRED
+small_cell_policy: REQUIRED
+sample_metadata_release: REQUIRED
+sample_to_patient_mapping_field: REQUIRED
+sample_to_compartment_mapping_rule: REQUIRED
+eligible_consequence_mapping: REQUIRED
+variant_deduplication_key: REQUIRED
+transcript_consequence_resolution: REQUIRED
+normalised_output_sha256: REQUIRED
