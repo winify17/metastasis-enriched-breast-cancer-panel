@@ -6,7 +6,7 @@ Panel genes: `TP53`, `FLG`, `PIK3CA`, `CACNA1A`, `GOLGB1`, `COL14A1`, and `MUC5B
 
 ## Scope
 
-The workflow generates all 10 statistical figures, all 6 main data tables, and all 9 supplementary data tables described in the dissertation. Generated files are written to `results/`, which is excluded from version control.
+The workflow generates all 10 statistical figures, all 10 in-text tables, and all 10 supplementary tables described in the dissertation. Generated files are written to `results/`, which is excluded from version control.
 
 Before publication, AURORA-derived files are retained in the local analysis workspace only to document the methods and demonstrate the reproducibility workflow. They are not included as an independent data release, and access and reuse remain subject to the terms of the original AURORA source.
 
@@ -25,7 +25,7 @@ python python/run_public_pipeline.py
 Rscript R/run_all.R
 ```
 
-The Python pipeline reconstructs the seven-gene panel, rebuilds the TCGA analysis input, and generates Tables 1-4, Supplementary Tables 1-2, and Figures 1-3. The R pipeline fits the survival models and generates Tables 5-6, Supplementary Tables 3-9, and Figures 4-10. Both pipelines stop when manuscript values differ from their expected values.
+The Python pipeline reconstructs the seven-gene panel, rebuilds the TCGA analysis input, and generates Tables 1-4, Supplementary Tables 1-2, and Figures 1-3. The R pipeline fits the survival models and generates Tables 5-10, Supplementary Tables 3-7, 8A, 8B, and 9, and Figures 4-10. Tables 7-10 contain the numbers at risk displayed within Figures 7-10. Both pipelines stop when manuscript values differ from their expected values.
 
 The default GitHub release is code-first and does not track the AURORA aggregate CSV files. The AURORA Supplementary Tables 1-8 can be downloaded from the [Garcia-Recio et al. Nature Cancer article](https://www.nature.com/articles/s43018-022-00491-x) or as a [direct supplementary archive](https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs43018-022-00491-x/MediaObjects/43018_2022_491_MOESM2_ESM.rar). Supplementary Table 2 contains the sample-level molecular information used to identify the WES samples and classify them as primary or metastatic.
 
