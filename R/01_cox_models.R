@@ -64,7 +64,25 @@ ph_rows <- function(model, model_name) {
   values[, c("model", "variable", "chisq", "p")]
 }
 ph_results <- rbind(ph_rows(m1, "Model 1"), ph_rows(m3, "Model 3"))
-write.csv(ph_results, file.path(tables_dir, "supplementary_table8_ph_tests.csv"), row.names = FALSE)
+
+ph_value <- function(model_name, variable, column) {
+  value <- ph_results[
+    ph_results$model == model_name & ph_results$variable == variable,
+    column
+  ]
+  if (length(value) == 0) NA_real_ else unname(value[1])
+}
+
+ph_table8a_terms <- c("panel_burden", "log_tmb", "age", "stage", "mol_subtype", "GLOBAL")
+ph_table8a <- data.frame(
+  Variable = c("Panel burden", "log1p(TMB)", "Age", "Stage", "Molecular subtype", "GLOBAL"),
+  `Model 1 chisq` = vapply(ph_table8a_terms, function(term) ph_value("Model 1", term, "chisq"), numeric(1)),
+  `Model 1 p` = vapply(ph_table8a_terms, function(term) ph_value("Model 1", term, "p"), numeric(1)),
+  `Model 3 chisq` = vapply(ph_table8a_terms, function(term) ph_value("Model 3", term, "chisq"), numeric(1)),
+  `Model 3 p` = vapply(ph_table8a_terms, function(term) ph_value("Model 3", term, "p"), numeric(1)),
+  check.names = FALSE
+)
+write.csv(ph_table8a, file.path(tables_dir, "supplementary_table8a_ph_tests.csv"), row.names = FALSE)
 
 coefficient_labels <- c(
   panel_burden = "Panel burden (per gene)", log_tmb = "ln(TMB + 1)", age = "Age (per year)",
@@ -110,4 +128,4 @@ draw_cindex(); dev.off()
 svg(file.path(figures_dir, "fig6_cindex_comparison.svg"), width = 9, height = 6)
 draw_cindex(); dev.off()
 
-cat("Generated Table 5, Supplementary Tables 3-6 and 8, and Figures 4 and 6.\n")
+cat("Generated Table 5, Supplementary Tables 3-6 and 8A, and Figures 4 and 6.\n")

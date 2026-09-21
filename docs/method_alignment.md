@@ -48,11 +48,11 @@ The same TP53 row reports a clinically adjusted upper 95% confidence limit of 2.
 
 ## Reproducibility appendix
 
-The current reproducibility paragraph names superseded output files, includes the patient-level `panel_burden_aurora.csv`, and refers to ten in-text tables. The dissertation contains six main data tables and nine supplementary tables. The patient-level AURORA file should not be named as a public repository item.
+The reproducibility paragraph should not name superseded outputs or the restricted patient-level `panel_burden_aurora.csv` as a public repository item. The updated workflow generates ten in-text tables, including the four numbers-at-risk tables displayed within Figures 7-10, and ten supplementary tables, counting Supplementary Tables 8A and 8B separately.
 
 Suggested replacement:
 
-> Reproducibility materials: The public repository contains the analysis scripts, the archived public TCGA-BRCA inputs, schemas for the controlled AURORA inputs, and a complete output manifest. Uncleared AURORA aggregate files and all patient-level AURORA data remain outside the public repository. In an authorised environment supplied with the required AURORA inputs, the workflow generates six main data tables, nine supplementary tables, and ten figures covering panel construction, paired burden, TCGA burden and TMB, Cox models, sensitivity analyses, individual-gene estimates, proportional-hazards diagnostics, model concordance, and Kaplan-Meier analyses. Generated tables and figures are excluded from the repository and can be recreated by following `docs/output_manifest.md`.
+> Reproducibility materials: The public repository contains the analysis scripts, the archived public TCGA-BRCA inputs, schemas for the controlled AURORA inputs, and a complete output manifest. Uncleared AURORA aggregate files and all patient-level AURORA data remain outside the public repository. In an authorised environment supplied with the required AURORA inputs, the workflow generates ten in-text tables, ten supplementary tables, and ten figures covering panel construction, paired burden, TCGA burden and TMB, Cox models, sensitivity analyses, individual-gene estimates, proportional-hazards diagnostics, model concordance, Kaplan-Meier analyses, and stage-stratified time-varying Cox analyses. Generated tables and figures are excluded from the repository and can be recreated by following `docs/output_manifest.md`.
 
 ## Title and interpretation
 

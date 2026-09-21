@@ -10,6 +10,6 @@ From the repository root, run:
 Rscript R/run_all.R
 ```
 
-The scripts create manuscript Tables 5-6, Supplementary Tables 3-9, and Figures 4-10 in `results/`.
+The scripts create manuscript Tables 5-10, Supplementary Tables 3-7, 8A, 8B, and 9, and Figures 4-10 in `results/`. They also write the time-specific extended Cox estimates reported in Section 3.8.
 
 The numerical workflow was checked with R 4.5.3 and `survival` 3.8-6. Exact core package versions are recorded in `renv.lock`.

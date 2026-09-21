@@ -20,15 +20,33 @@ analysis_data$tmb_tertile <- cut(
 )
 
 km_specs <- list(
-  list(variable = "burden_group", title = "TCGA-BRCA OS by panel burden", legend = "Panel burden", colours = c("#1683E6", "#FF9000", "#EF8BDB"), stem = "fig7_km_panel_burden_groups"),
-  list(variable = "panel_status", title = "TCGA-BRCA OS by panel mutation status", legend = "Panel status", colours = c("#1683E6", "#FF9000"), stem = "fig8_km_panel_binary"),
-  list(variable = "tp53_status", title = "TCGA-BRCA OS by TP53 mutation status", legend = "TP53", colours = c("#1683E6", "#FF9000"), stem = "fig9_km_tp53"),
-  list(variable = "tmb_tertile", title = "TCGA-BRCA OS by TMB tertile", legend = "TMB tertile", colours = c("#1683E6", "#8CAF43", "#FF9000"), stem = "fig10_km_tmb_tertiles")
+  list(variable = "burden_group", title = "TCGA-BRCA OS by panel burden", legend = "Panel burden", colours = c("#1683E6", "#FF9000", "#EF8BDB"), stem = "fig7_km_panel_burden_groups", table_stem = "table7_numbers_at_risk_panel_burden"),
+  list(variable = "panel_status", title = "TCGA-BRCA OS by panel mutation status", legend = "Panel status", colours = c("#1683E6", "#FF9000"), stem = "fig8_km_panel_binary", table_stem = "table8_numbers_at_risk_panel_status"),
+  list(variable = "tp53_status", title = "TCGA-BRCA OS by TP53 mutation status", legend = "TP53", colours = c("#1683E6", "#FF9000"), stem = "fig9_km_tp53", table_stem = "table9_numbers_at_risk_tp53"),
+  list(variable = "tmb_tertile", title = "TCGA-BRCA OS by TMB tertile", legend = "TMB tertile", colours = c("#1683E6", "#8CAF43", "#FF9000"), stem = "fig10_km_tmb_tertiles", table_stem = "table10_numbers_at_risk_tmb_tertiles")
 )
 
-draw_km <- function(spec, fit, p_value) {
+risk_table_for_spec <- function(spec, times = seq(0, 25, 5)) {
   groups <- levels(droplevels(analysis_data[[spec$variable]]))
-  times <- seq(0, 25, 5)
+  do.call(rbind, lapply(groups, function(group) {
+    group_data <- analysis_data[
+      !is.na(analysis_data[[spec$variable]]) & analysis_data[[spec$variable]] == group,
+    ]
+    group_fit <- survfit(Surv(time_years, event) ~ 1, data = group_data)
+    data.frame(
+      variable = spec$variable,
+      group = group,
+      time_years = times,
+      n_at_risk = summary(group_fit, times = times, extend = TRUE)$n.risk,
+      row.names = NULL,
+      check.names = FALSE
+    )
+  }))
+}
+
+draw_km <- function(spec, fit, p_value, risk_table) {
+  groups <- levels(droplevels(analysis_data[[spec$variable]]))
+  times <- sort(unique(risk_table$time_years))
   layout(matrix(c(1, 2), ncol = 1), heights = c(3.2, 1.2))
   par(mar = c(1, 5, 4, 2))
   plot(fit, col = spec$colours, lwd = 2, mark.time = TRUE, xlim = c(0, 25), ylim = c(0, 1),
@@ -43,9 +61,7 @@ draw_km <- function(spec, fit, p_value) {
   title(xlab = "Time (years)")
   mtext("Number at risk", side = 3, line = -0.2, adj = 0, font = 2)
   for (index in seq_along(groups)) {
-    group_data <- analysis_data[analysis_data[[spec$variable]] == groups[index] & !is.na(analysis_data[[spec$variable]]), ]
-    group_fit <- survfit(Surv(time_years, event) ~ 1, data = group_data)
-    risks <- summary(group_fit, times = times, extend = TRUE)$n.risk
+    risks <- risk_table$n_at_risk[risk_table$group == groups[index]]
     y <- length(groups) - index + 1
     text(-1.4, y, groups[index], adj = 1, col = spec$colours[index], font = 2)
     text(times, y, risks)
@@ -57,10 +73,12 @@ km_rows <- lapply(km_specs, function(spec) {
   formula <- as.formula(paste("Surv(time_years, event) ~", spec$variable))
   fit <- survfit(formula, data = analysis_data)
   p_value <- log_rank_p(formula, analysis_data)
+  risk_table <- risk_table_for_spec(spec)
+  write.csv(risk_table, file.path(tables_dir, paste0(spec$table_stem, ".csv")), row.names = FALSE)
   png(file.path(figures_dir, paste0(spec$stem, ".png")), width = 2400, height = 2000, res = 300)
-  draw_km(spec, fit, p_value); dev.off()
+  draw_km(spec, fit, p_value, risk_table); dev.off()
   svg(file.path(figures_dir, paste0(spec$stem, ".svg")), width = 8, height = 7)
-  draw_km(spec, fit, p_value); dev.off()
+  draw_km(spec, fit, p_value, risk_table); dev.off()
   counts <- table(analysis_data[[spec$variable]], useNA = "no")
   group_text <- paste0(names(counts), " (", as.integer(counts), ")", collapse = ", ")
   data.frame(variable = spec$variable, groups = group_text, log_rank_p = p_value)
@@ -68,4 +86,4 @@ km_rows <- lapply(km_specs, function(spec) {
 km_results <- do.call(rbind, km_rows)
 write.csv(km_results, file.path(tables_dir, "supplementary_table9_km_summary.csv"), row.names = FALSE)
 
-cat("Generated Supplementary Table 9 and Figures 7-10.\n")
+cat("Generated Tables 7-10, Supplementary Table 9, and Figures 7-10.\n")

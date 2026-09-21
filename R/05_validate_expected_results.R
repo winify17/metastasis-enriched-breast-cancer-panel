@@ -140,9 +140,70 @@ expected_ph <- data.frame(
 )
 for (index in seq_len(nrow(expected_ph))) {
   row <- ph_results[ph_results$model == expected_ph$model[index] & ph_results$variable == expected_ph$variable[index], ]
-  if (nrow(row) != 1) stop("Supplementary Table 8 missing or duplicate row: ", expected_ph$model[index], " ", expected_ph$variable[index])
-  check_round(row$chisq, expected_ph$chisq[index], 3, paste("Supplementary Table 8", expected_ph$model[index], expected_ph$variable[index], "chisq"))
-  check_round(row$p, expected_ph$p[index], 3, paste("Supplementary Table 8", expected_ph$model[index], expected_ph$variable[index], "p"))
+  if (nrow(row) != 1) stop("Supplementary Table 8A missing or duplicate row: ", expected_ph$model[index], " ", expected_ph$variable[index])
+  check_round(row$chisq, expected_ph$chisq[index], 3, paste("Supplementary Table 8A", expected_ph$model[index], expected_ph$variable[index], "chisq"))
+  check_round(row$p, expected_ph$p[index], 3, paste("Supplementary Table 8A", expected_ph$model[index], expected_ph$variable[index], "p"))
+}
+if (!identical(
+  names(ph_table8a),
+  c("Variable", "Model 1 chisq", "Model 1 p", "Model 3 chisq", "Model 3 p")
+) || !identical(
+  as.character(ph_table8a$Variable),
+  c("Panel burden", "log1p(TMB)", "Age", "Stage", "Molecular subtype", "GLOBAL")
+)) {
+  stop("Supplementary Table 8A layout or row labels differ from the dissertation")
+}
+
+expected_time_varying <- data.frame(
+  term = rep(c("Panel burden term", "Tumour mutational burden term"), each = 4),
+  configuration = rep(c("7-gene full panel", "5-gene reduced", "TP53-only", "PIK3CA-only"), 2),
+  HR_at_1_year = c(1.266, 0.911, 2.015, 0.954, 1.467, 1.792, 1.702, 1.736),
+  HR_at_1_year_lower = c(0.836, 0.466, 1.052, 0.483, 0.912, 1.067, 1.125, 1.164),
+  HR_at_1_year_upper = c(1.915, 1.779, 3.859, 1.885, 2.361, 3.007, 2.576, 2.589),
+  main_p = c(0.265, 0.784, 0.035, 0.892, 0.114, 0.027, 0.012, 0.007),
+  time_interaction_ratio = c(0.905, 0.962, 0.818, 0.988, 0.606, 0.558, 0.526, 0.560),
+  time_interaction_lower = c(0.675, 0.584, 0.504, 0.616, 0.412, 0.369, 0.361, 0.395),
+  time_interaction_upper = c(1.213, 1.587, 1.326, 1.585, 0.890, 0.842, 0.766, 0.795),
+  time_interaction_p = c(0.505, 0.880, 0.414, 0.961, 0.011, 0.005, 0.001, 0.001),
+  joint_wald_chisq = c(1.34, 0.26, 6.02, 0.090, 6.56, 8.09, 12.64, 12.36),
+  joint_p = c(0.512, 0.879, 0.049, 0.955, 0.038, 0.018, 0.002, 0.002)
+)
+if (!identical(as.character(time_varying_results$term), expected_time_varying$term) ||
+    !identical(as.character(time_varying_results$configuration), expected_time_varying$configuration)) {
+  stop("Supplementary Table 8B term or configuration order differs")
+}
+for (index in seq_len(nrow(expected_time_varying))) {
+  label <- paste("Supplementary Table 8B", expected_time_varying$term[index], expected_time_varying$configuration[index])
+  for (column in c(
+    "HR_at_1_year", "HR_at_1_year_lower", "HR_at_1_year_upper", "main_p",
+    "time_interaction_ratio", "time_interaction_lower", "time_interaction_upper",
+    "time_interaction_p", "joint_p"
+  )) {
+    check_round(time_varying_results[[column]][index], expected_time_varying[[column]][index], 3, paste(label, column))
+  }
+  check_round(time_varying_results$joint_wald_chisq[index], expected_time_varying$joint_wald_chisq[index], 2, paste(label, "joint Wald chisq"))
+  check_integer(time_varying_results$N[index], 941, paste(label, "N"))
+  check_integer(time_varying_results$Events[index], 129, paste(label, "events"))
+}
+
+reported_time_specific <- time_specific_results[
+  time_specific_results$term == "Panel burden term" &
+    time_specific_results$configuration == "7-gene full panel",
+]
+expected_time_specific <- data.frame(
+  time_years = c(1, 2.4, 5),
+  HR = c(1.27, 1.16, 1.08),
+  HR_lower = c(0.84, 0.89, 0.80),
+  HR_upper = c(1.92, 1.52, 1.46)
+)
+if (nrow(reported_time_specific) != nrow(expected_time_specific) ||
+    any(reported_time_specific$time_years != expected_time_specific$time_years)) {
+  stop("Time-specific full-panel estimates do not contain the reported 1-, 2.4-, and 5-year rows")
+}
+for (index in seq_len(nrow(expected_time_specific))) {
+  for (column in c("HR", "HR_lower", "HR_upper")) {
+    check_round(reported_time_specific[[column]][index], expected_time_specific[[column]][index], 2, paste("Section 3.8 time-specific panel", expected_time_specific$time_years[index], "years", column))
+  }
 }
 
 expected_km_groups <- c(
@@ -155,12 +216,53 @@ expected_km_p <- c(0.959, 0.826, 0.186, 0.281)
 if (!identical(as.character(km_results$groups), expected_km_groups)) stop("Supplementary Table 9 group counts or labels differ")
 for (index in seq_along(expected_km_p)) check_round(km_results$log_rank_p[index], expected_km_p[index], 3, paste("Supplementary Table 9 row", index, "p"))
 
+validate_risk_table <- function(filename, groups, expected_counts, label) {
+  observed <- read.csv(file.path(tables_dir, filename), stringsAsFactors = FALSE)
+  times <- seq(0, 25, 5)
+  expected_groups <- rep(groups, each = length(times))
+  expected_times <- rep(times, times = length(groups))
+  expected_n <- unlist(expected_counts, use.names = FALSE)
+  if (!identical(as.character(observed$group), expected_groups) ||
+      any(observed$time_years != expected_times) ||
+      any(observed$n_at_risk != expected_n)) {
+    stop(label, " numbers at risk differ from the dissertation")
+  }
+}
+
+validate_risk_table(
+  "table7_numbers_at_risk_panel_burden.csv",
+  c("0", "1", ">=2"),
+  list(c(500, 113, 19, 4, 1, 0), c(455, 103, 21, 6, 4, 0), c(128, 37, 2, 2, 1, 0)),
+  "Table 7"
+)
+validate_risk_table(
+  "table8_numbers_at_risk_panel_status.csv",
+  c("Wild-type", "Mutated"),
+  list(c(500, 113, 19, 4, 1, 0), c(583, 140, 23, 8, 5, 0)),
+  "Table 8"
+)
+validate_risk_table(
+  "table9_numbers_at_risk_tp53.csv",
+  c("Wild-type", "Mutated"),
+  list(c(787, 177, 31, 7, 3, 0), c(296, 76, 11, 5, 3, 0)),
+  "Table 9"
+)
+validate_risk_table(
+  "table10_numbers_at_risk_tmb_tertiles.csv",
+  c("Low", "Mid", "High"),
+  list(c(333, 96, 11, 5, 1, 0), c(313, 71, 15, 4, 3, 0), c(318, 67, 12, 3, 2, 0)),
+  "Table 10"
+)
+
 required_outputs <- c(
   "table5_cox_model3.csv", "table6_sensitivity_configurations.csv",
+  "table7_numbers_at_risk_panel_burden.csv", "table8_numbers_at_risk_panel_status.csv",
+  "table9_numbers_at_risk_tp53.csv", "table10_numbers_at_risk_tmb_tertiles.csv",
   "supplementary_table3_model_comparison.csv", "supplementary_table4_cox_model1.csv",
   "supplementary_table5_cox_model2.csv", "supplementary_table6_cox_model4.csv",
-  "supplementary_table7_individual_genes.csv", "supplementary_table8_ph_tests.csv",
-  "supplementary_table9_km_summary.csv"
+  "supplementary_table7_individual_genes.csv", "supplementary_table8a_ph_tests.csv",
+  "supplementary_table8b_time_varying_cox.csv", "supplementary_table9_km_summary.csv",
+  "time_specific_extended_cox_estimates.csv"
 )
 missing_tables <- required_outputs[!file.exists(file.path(tables_dir, required_outputs))]
 if (length(missing_tables) > 0) stop("Missing R table outputs: ", paste(missing_tables, collapse = ", "))
